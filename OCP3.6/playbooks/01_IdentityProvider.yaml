@@ -1,0 +1,28 @@
+- hosts: masters
+  remote_user: root
+
+  vars:
+    htpasswd : /etc/origin/master/htpasswd
+    admin_user : ocpadm
+    admin_passwd : r3dh4t1!
+    common_passwd : redhat1!
+    users: 
+       - { name: "{{ admin_user }}" , passwd: "{{ admin_passwd }}" }
+       - { name: 'andrew', passwd: "{{ common_passwd }}" }
+       - { name: 'karla', passwd : "{{ common_passwd }}" }
+       - { name: 'openshift-dev', passwd : 'devel' }
+       
+  tasks:
+  - name: install httpd-tools (htpasswd)
+    yum: name=httpd-tools state=latest
+
+  - name: Create HtPasswd File
+    file: path={{ htpasswd }} state=touch mode="u=rw,g=r,o=r"
+
+  - name: Create User
+    shell: htpasswd -b {{ htpasswd }} {{ item.name }} {{ item.passwd }}
+    with_items: "{{ users }}"
+
+  - name: Add cluster-admin to {{ admin_user }}
+    shell: "oadm policy add-cluster-role-to-user cluster-admin {{ admin_user }}"
+
