@@ -87,7 +87,7 @@
     with_items: "{{ projects }}"
 
   - name: Create view App {{ item.name }}
-    shell: oc new-app ruby~{{ app_view_source }} --name={{ app_name }} -p MYSQL_USER={{ item.db_user }} -p MYSQL_PASSWORD={{ item.db_passwd }} -p MYSQL_DATABASE={{ item.db_name }} -p COLOR={{ item.color }} -n {{ item.proj }}
+    shell: oc new-app ruby~{{ app_view_source }} --name={{ app_name }} -e MYSQL_USER={{ item.db_user }} -e MYSQL_PASSWORD={{ item.db_passwd }} -e MYSQL_DATABASE={{ item.db_name }} -e COLOR={{ item.color }} -n {{ item.proj }}
     with_items: "{{ projects }}"
 
   - name: Create Route
