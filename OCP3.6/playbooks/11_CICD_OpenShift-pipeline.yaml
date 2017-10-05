@@ -20,6 +20,7 @@
     jenkins_pv_name : jenkins-volume
     jenkins_pv_path : /srv/nfs/jenkins
     jenkins_pv_host : intel.osaka.redhat.com
+    jenkins_image : registry.access.redhat.com/openshift3/jenkins-2-rhel7
     common_passwd : redhat1!
 
   tasks:
@@ -58,8 +59,8 @@
     when: jenkins_pv_exist.rc == 1
  
   - name: Deploy Jenkins 
-    shell: oc new-app jenkins-persistent -n {{ jenkins_proj }} -e JENKINS_PASSWORD={{ jenkins_passwd }} openshift3/jenkins-2-rhel7
-    when: jenkins_proj_exist.rc == 1
+    shell: oc new-app -n {{ jenkins_proj }} -e JENKINS_PASSWORD={{ jenkins_passwd }} {{ jenkins_image }}
+    when: jenkins_pv_exist.rc == 1
 
   - name: Wait until Jenkins Pod Running
     shell: oc get pod | grep jenkins | egrep -v "build|deploy" | grep Running | grep "1/1"
@@ -74,7 +75,7 @@
     with_items: "{{ projects }}"
 
   - name: Create Database Pods
-    shell: oc new-app --template=mysql-ephemeral -p MYSQL_USER={{ item.db_user }} -p MYSQL_PASSWORD={{ item.db_passwd }} -p MYSQL_DATABASE={{ item.db_name }} -p DATABASE_SERVICE_NAME={{ db_name }} -p MYSQL_ROOT_PASSWORD={{ item.db_passwd }} -n {{ item.proj }}
+    shell: oc new-app --template=mysql-ephemeral -e MYSQL_USER={{ item.db_user }} -e MYSQL_PASSWORD={{ item.db_passwd }} -e MYSQL_DATABASE={{ item.db_name }} -p DATABASE_SERVICE_NAME={{ db_name }} -e MYSQL_ROOT_PASSWORD={{ item.db_passwd }} -n {{ item.proj }}
     with_items: "{{ projects }}"
 
   - name: Wait until Database Pod Running
